@@ -1,0 +1,11 @@
+{
+  "environment": "develop",
+  "logLevel": 0,
+  "ginMode": "${APP_GIN_MODE | debug}",
+  "port": "9090",
+  "database": {
+    "connectionString": "mongodb://localhost:27017/",
+    "database": "example",
+    "usersCollection": "users"
+  }
+}
