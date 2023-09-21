@@ -107,3 +107,50 @@ func TestMongoUserRepositoryMapper_GivenRepositoryDataList_WhenMap_ThenMapToDoma
 	assert.NotNil(t, domainUser)
 	assert.Equal(t, expectedDomainUsers, domainUser)
 }
+
+func TestMongoUserRepositoryMapper_GivenRepositorySearcuResults_WhenMap_ThenMapToUserSearchOutput(t *testing.T) {
+	t.Log("Should map user repository data search results to user domain search results")
+
+	now := time.Now().UTC()
+	page := 1
+	size := 10
+	total := int64(1)
+	repositoryUsers := []MongoUser{
+		{
+			Reference:   "USER1",
+			FirstName:   "Foo",
+			LastName:    "Bar",
+			Email:       "foobar@test.com",
+			IsActive:    true,
+			CreatedDate: now,
+			UpdatedDate: now,
+		},
+	}
+	expectedDomainUsers := []domain.User{
+		{
+			GenericEntity: domain.GenericEntity{
+				Reference:   "USER1",
+				IsActive:    true,
+				CreatedDate: now,
+				UpdatedDate: now,
+			},
+			FirstName: "Foo",
+			LastName:  "Bar",
+			Email:     "foobar@test.com",
+		},
+	}
+	expectedDomainSearchOutput := domain.UserSearchOutput{
+		SearchOutput: domain.SearchOutput{
+			Total:    total,
+			Page:     page,
+			PageSize: size,
+		},
+		Users: expectedDomainUsers,
+	}
+
+	mapper := NewDefaultMongoRepositoryMapper()
+	domainSearchOutput := mapper.MapRepositorySearchActiveToOutput(repositoryUsers, total, page, size)
+
+	assert.NotNil(t, domainSearchOutput)
+	assert.Equal(t, expectedDomainSearchOutput, domainSearchOutput)
+}

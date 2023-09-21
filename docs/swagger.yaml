@@ -39,6 +39,19 @@ definitions:
       updated:
         type: string
     type: object
+  handler.UserSearchResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/handler.UserResponse'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+      total:
+        type: integer
+    type: object
   handler.UserUpdateRequest:
     properties:
       email:
@@ -211,6 +224,52 @@ paths:
           schema:
             $ref: '#/definitions/errors.APIError'
       summary: Update an user
+      tags:
+      - user
+  /search:
+    get:
+      description: Search users
+      parameters:
+      - description: User first name
+        in: query
+        name: firstName
+        type: string
+      - description: User last name
+        in: query
+        name: lastName
+        type: string
+      - description: User email
+        in: query
+        name: email
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UserSearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.APIError'
+      summary: Search users
       tags:
       - user
 swagger: "2.0"

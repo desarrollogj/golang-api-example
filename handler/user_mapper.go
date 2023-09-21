@@ -27,12 +27,20 @@ type UserUpdateRequest struct {
 	UserCreateRequest
 }
 
+type UserSearchResponse struct {
+	Data     []UserResponse `json:"data"`
+	Total    int64          `json:"total"`
+	Page     int            `json:"page"`
+	PageSize int            `json:"size"`
+}
+
 // UserMapper represents the method for user mappers
 type UserMapper interface {
 	MapDomainToResponse(user domain.User) UserResponse
 	MapDomainListToResponseList(users []domain.User) []UserResponse
 	MapCreateRequestToInput(request UserCreateRequest) domain.UserCreateInput
 	MapUpdateRequestToInput(reference string, request UserUpdateRequest) domain.UserUpdateInput
+	MapDomainSearchOutputToResponse(output domain.UserSearchOutput) UserSearchResponse
 }
 
 // defaultUserMapper is the default implementation for UserMapper interface
@@ -86,5 +94,15 @@ func (m defaultUserMapper) MapUpdateRequestToInput(reference string, request Use
 			Email:     strings.TrimSpace(request.Email),
 		},
 		Reference: strings.TrimSpace(reference),
+	}
+}
+
+// MapDomainSearchOutputToResponse map search output to a response struct
+func (m defaultUserMapper) MapDomainSearchOutputToResponse(output domain.UserSearchOutput) UserSearchResponse {
+	return UserSearchResponse{
+		Data:     m.MapDomainListToResponseList(output.Users),
+		Total:    output.Total,
+		Page:     output.Page,
+		PageSize: output.PageSize,
 	}
 }

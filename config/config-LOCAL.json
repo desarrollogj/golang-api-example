@@ -3,6 +3,10 @@
   "logLevel": 0,
   "ginMode": "${APP_GIN_MODE | debug}",
   "port": "9090",
+  "application": {
+    "pagingDefaultPage": 1,
+    "pagingDefaultSize": 10
+  },
   "database": {
     "connectionString": "mongodb://localhost:27017/",
     "database": "example",

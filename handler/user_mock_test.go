@@ -7,6 +7,14 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// Config
+func newApplicationConfigurationMock() domain.ApplicationConfiguration {
+	return domain.ApplicationConfiguration{
+		PagingDefaultPage: 1,
+		PagingDefaultSize: 10,
+	}
+}
+
 // Mapper
 type userMapperMock struct {
 	mock.Mock
@@ -51,6 +59,17 @@ func (m *userMapperMock) MapUpdateRequestToInput(reference string, request UserU
 	t, ok := args.Get(0).(domain.UserUpdateInput)
 	if !ok {
 		return domain.UserUpdateInput{}
+	}
+
+	return t
+}
+
+func (m *userMapperMock) MapDomainSearchOutputToResponse(output domain.UserSearchOutput) UserSearchResponse {
+	args := m.Called(output)
+
+	t, ok := args.Get(0).(UserSearchResponse)
+	if !ok {
+		return UserSearchResponse{}
 	}
 
 	return t
@@ -127,6 +146,21 @@ func (s *userUpdateServiceMock) Execute(input domain.UserUpdateInput) (domain.Us
 	t, ok := args.Get(0).(domain.User)
 	if !ok {
 		return domain.User{}, errors.New("mock_error")
+	}
+
+	return t, args.Error(1)
+}
+
+type userSearchServiceMock struct {
+	mock.Mock
+}
+
+func (s *userSearchServiceMock) Execute(input domain.UserSearchInput) (domain.UserSearchOutput, error) {
+	args := s.Called(input)
+
+	t, ok := args.Get(0).(domain.UserSearchOutput)
+	if !ok {
+		return domain.UserSearchOutput{}, errors.New("mock_error")
 	}
 
 	return t, args.Error(1)

@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/desarrollogj/golang-api-example/domain"
@@ -11,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // UserRepository represents the methods to be implemented by users repositories
@@ -18,6 +20,7 @@ type UserRepository interface {
 	FindAllActive() ([]domain.User, error)
 	FindActiveByReference(reference string) (domain.User, error)
 	FindByReference(reference string) (domain.User, error)
+	SearchActive(input domain.UserSearchInput) (domain.UserSearchOutput, error)
 	Create(user domain.User) (domain.User, error)
 	Update(user domain.User) (domain.User, error)
 	Delete(reference string) (domain.User, error)
@@ -97,6 +100,52 @@ func (r mongoUserRepository) findByReference(reference string, onlyActives bool)
 	}
 
 	return user, nil
+}
+
+func (r mongoUserRepository) SearchActive(input domain.UserSearchInput) (domain.UserSearchOutput, error) {
+	client := database.Mongo.Client
+	collection := client.Database(r.config.Database).Collection(r.config.UsersCollection)
+
+	filters := bson.D{{Key: "is_active", Value: true}}
+	if len(input.FirstName) > 0 {
+		filter := fmt.Sprintf("^%s", input.FirstName)
+		filters = append(filters, bson.E{Key: "first_name", Value: primitive.Regex{Pattern: filter, Options: "i"}})
+	}
+	if len(input.LastName) > 0 {
+		filter := fmt.Sprintf("^%s", input.LastName)
+		filters = append(filters, bson.E{Key: "last_name", Value: primitive.Regex{Pattern: filter, Options: "i"}})
+	}
+	if len(input.Email) > 0 {
+		filter := fmt.Sprintf("^%s", input.LastName)
+		filters = append(filters, bson.E{Key: "email", Value: primitive.Regex{Pattern: filter, Options: "i"}})
+	}
+	limit := int64(input.PageSize)
+	skip := int64((input.Page * input.PageSize) - input.PageSize)
+	paging := options.FindOptions{Limit: &limit, Skip: &skip}
+
+	users := []MongoUser{}
+	cur, err := collection.Find(context.TODO(), filters, &paging)
+	if err != nil {
+		errMsg := "unexpected error when search active users"
+		logger.AppLog.Error().Err(err).Msg(errMsg)
+		return domain.UserSearchOutput{}, errors.New(errMsg)
+	}
+
+	err = cur.All(context.TODO(), &users)
+	if err != nil {
+		errMsg := "unexpected error when search active users"
+		logger.AppLog.Error().Err(err).Msg(errMsg)
+		return domain.UserSearchOutput{}, errors.New(errMsg)
+	}
+
+	total, err := collection.CountDocuments(context.TODO(), filters)
+	if err != nil {
+		errMsg := "unexpected error when search active users"
+		logger.AppLog.Error().Err(err).Msg(errMsg)
+		return domain.UserSearchOutput{}, errors.New(errMsg)
+	}
+
+	return r.mapper.MapRepositorySearchActiveToOutput(users, total, input.Page, input.PageSize), nil
 }
 
 func (r mongoUserRepository) Create(user domain.User) (domain.User, error) {

@@ -17,3 +17,15 @@ type UserUpdateInput struct {
 	UserCreateInput
 	Reference string
 }
+
+type UserSearchInput struct {
+	SearchInput
+	FirstName string
+	LastName  string
+	Email     string
+}
+
+type UserSearchOutput struct {
+	SearchOutput
+	Users []User
+}

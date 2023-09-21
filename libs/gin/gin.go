@@ -2,6 +2,7 @@ package gin
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/desarrollogj/golang-api-example/libs/errors"
 	"github.com/gin-gonic/gin"
@@ -30,4 +31,14 @@ func MethodNotAllowedHandler(c *gin.Context) {
 	ErrorWrapper(func(c *gin.Context) *errors.APIError {
 		return errors.NewMethodNotAllowed("Method not allowed - %s - %s ", c.Request.Method, c.Request.URL.Path)
 	}, c)
+}
+
+// GetIntQuery recovers an integer value from the querystring
+func GetIntQuery(key string, c *gin.Context) int {
+	value := c.Query(key)
+	intValue, err := strconv.Atoi(value)
+	if err != nil {
+		intValue = 0
+	}
+	return intValue
 }

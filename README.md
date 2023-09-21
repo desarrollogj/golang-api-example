@@ -20,6 +20,15 @@ GET: `http://localhost:9090/api/v1/users/{id}`
 
 Gets an user by its id. Returns 404 if the user was not found.
 
+GET: `http://localhost:9090/api/v1/search`
+
+Search users. Parameters:
+- firstName: User first name (complete or initial characters)
+- lastName: User last name (complete or initial characters)
+- email: User email (complete or initial characters)
+- page: Page number, starting from 1
+- size: Page size, starting from 1
+
 POST: `http://localhost:9090/api/v1/users`
 
 Creates an user. Example request body:

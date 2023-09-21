@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"github.com/desarrollogj/golang-api-example/domain"
 	libErrors "github.com/desarrollogj/golang-api-example/libs/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestUser_WhenFindAll_ThenReturnUserListResponse(t *testing.T) {
@@ -44,6 +46,7 @@ func TestUser_WhenFindAll_ThenReturnUserListResponse(t *testing.T) {
 		},
 	}
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	mapperMock.On("MapDomainListToResponseList", domainUsers).Return(responseUsers)
 	findAllMock := new(userFindAllServiceMock)
@@ -52,13 +55,16 @@ func TestUser_WhenFindAll_ThenReturnUserListResponse(t *testing.T) {
 	createMock := new(userCreateServiceMock)
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/users", nil)
@@ -82,6 +88,7 @@ func TestUser_WhenFindAll_ThenReturnUserListResponse(t *testing.T) {
 func TestUser_WhenFindAll_AndServiceReturnedAnError_ThenReturnInternalServerErrorResponse(t *testing.T) {
 	t.Log("Failure when find all users because service returned an unexpected error")
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	findAllMock := new(userFindAllServiceMock)
 	findAllMock.On("Execute").Return([]domain.User{}, errors.New("service error"))
@@ -89,13 +96,16 @@ func TestUser_WhenFindAll_AndServiceReturnedAnError_ThenReturnInternalServerErro
 	createMock := new(userCreateServiceMock)
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/users", nil)
@@ -143,6 +153,7 @@ func TestUser_GivenAnId_WhenFindById_ThenReturnUserResponse(t *testing.T) {
 		UpdatedDate: currentStr,
 	}
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	mapperMock.On("MapDomainToResponse", domainUser).Return(responseUser)
 	findAllMock := new(userFindAllServiceMock)
@@ -151,13 +162,16 @@ func TestUser_GivenAnId_WhenFindById_ThenReturnUserResponse(t *testing.T) {
 	createMock := new(userCreateServiceMock)
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/users/USER1", nil)
@@ -183,6 +197,7 @@ func TestUser_GivenAnId_WhenFindById_AndServiceReturnedAnError_ThenReturnInterna
 
 	reference := "USER1"
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	findAllMock := new(userFindAllServiceMock)
 	findByReferenceMock := new(userFindByReferenceServiceMock)
@@ -190,13 +205,16 @@ func TestUser_GivenAnId_WhenFindById_AndServiceReturnedAnError_ThenReturnInterna
 	createMock := new(userCreateServiceMock)
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/users/USER1", nil)
@@ -253,6 +271,7 @@ func TestUser_GivenACreateRequest_WhenCreate_ThenReturnCreatedUserResponse(t *te
 		UpdatedDate: currentStr,
 	}
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	mapperMock.On("MapCreateRequestToInput", request).Return(domainInput)
 	mapperMock.On("MapDomainToResponse", domainUser).Return(responseUser)
@@ -262,13 +281,16 @@ func TestUser_GivenACreateRequest_WhenCreate_ThenReturnCreatedUserResponse(t *te
 	createMock.On("Execute", domainInput).Return(domainUser, nil)
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(request)
@@ -295,19 +317,23 @@ func TestUser_GivenACreateRequest_WhenCreate_ThenReturnCreatedUserResponse(t *te
 func TestUser_GivenANotValidCreateRequest_WhenCreate_ThenReturnBadRequestResponse(t *testing.T) {
 	t.Log("Failure create an user because request has not a valid format")
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	findAllMock := new(userFindAllServiceMock)
 	findByReferenceMock := new(userFindByReferenceServiceMock)
 	createMock := new(userCreateServiceMock)
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode("NOT A JSON")
@@ -339,19 +365,23 @@ func TestUser_GivenACreateRequestWithNotValidData_WhenCreate_ThenReturnBadReques
 		FirstName: "Foo",
 	}
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	findAllMock := new(userFindAllServiceMock)
 	findByReferenceMock := new(userFindByReferenceServiceMock)
 	createMock := new(userCreateServiceMock)
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(request)
@@ -390,6 +420,7 @@ func TestUser_GivenACreateRequest_WhenCreate_AndServiceReturnedAnError_ThenRetur
 		Email:     "foobar@email.com",
 	}
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	mapperMock.On("MapCreateRequestToInput", request).Return(domainInput)
 	findAllMock := new(userFindAllServiceMock)
@@ -398,13 +429,16 @@ func TestUser_GivenACreateRequest_WhenCreate_AndServiceReturnedAnError_ThenRetur
 	createMock.On("Execute", domainInput).Return(domain.User{}, errors.New("service error"))
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(request)
@@ -471,6 +505,7 @@ func TestUser_GivenAnUpdateRequest_WhenUpdate_ThenReturnUpdatedUserResponse(t *t
 		UpdatedDate: currentStr,
 	}
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	mapperMock.On("MapUpdateRequestToInput", reference, request).Return(domainInput)
 	mapperMock.On("MapDomainToResponse", domainUser).Return(responseUser)
@@ -480,13 +515,16 @@ func TestUser_GivenAnUpdateRequest_WhenUpdate_ThenReturnUpdatedUserResponse(t *t
 	updateMock := new(userUpdateServiceMock)
 	updateMock.On("Execute", domainInput).Return(domainUser, nil)
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(request)
@@ -513,19 +551,23 @@ func TestUser_GivenAnUpdateRequest_WhenUpdate_ThenReturnUpdatedUserResponse(t *t
 func TestUser_GivenANotValidUpdateRequest_WhenUpdate_ThenReturnBadRequestResponse(t *testing.T) {
 	t.Log("Failure when update an user because request has not a valid format")
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	findAllMock := new(userFindAllServiceMock)
 	findByReferenceMock := new(userFindByReferenceServiceMock)
 	createMock := new(userCreateServiceMock)
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode("NOT A JSON")
@@ -559,19 +601,23 @@ func TestUser_GivenAnUpdateRequestWithNotValidData_WhenUpdate_ThenReturnBadReque
 		},
 	}
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	findAllMock := new(userFindAllServiceMock)
 	findByReferenceMock := new(userFindByReferenceServiceMock)
 	createMock := new(userCreateServiceMock)
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(request)
@@ -616,6 +662,7 @@ func TestUser_GivenAnUpdateRequest_WhenUpdate_AndServiceReturnedAnError_ThenRetu
 		},
 	}
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	mapperMock.On("MapUpdateRequestToInput", reference, request).Return(domainInput)
 	findAllMock := new(userFindAllServiceMock)
@@ -624,13 +671,16 @@ func TestUser_GivenAnUpdateRequest_WhenUpdate_AndServiceReturnedAnError_ThenRetu
 	updateMock := new(userUpdateServiceMock)
 	updateMock.On("Execute", domainInput).Return(domain.User{}, errors.New("service error"))
 	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(request)
@@ -682,6 +732,7 @@ func TestUser_GivenADeleteRequest_WhenDelete_ThenReturnDeletedUserResponse(t *te
 		UpdatedDate: currentStr,
 	}
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	mapperMock.On("MapDomainToResponse", domainUser).Return(responseUser)
 	findAllMock := new(userFindAllServiceMock)
@@ -690,13 +741,16 @@ func TestUser_GivenADeleteRequest_WhenDelete_ThenReturnDeletedUserResponse(t *te
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
 	deleteMock.On("Execute", reference).Return(domainUser, nil)
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodDelete, "/api/v1/users/USER1", nil)
@@ -722,6 +776,7 @@ func TestUser_GivenADeleteRequest_WhenDelete_AndServiceReturnedAnError_ThenRetur
 
 	reference := "USER1"
 
+	config := newApplicationConfigurationMock()
 	mapperMock := new(userMapperMock)
 	findAllMock := new(userFindAllServiceMock)
 	findByReferenceMock := new(userFindByReferenceServiceMock)
@@ -729,13 +784,16 @@ func TestUser_GivenADeleteRequest_WhenDelete_AndServiceReturnedAnError_ThenRetur
 	updateMock := new(userUpdateServiceMock)
 	deleteMock := new(userDeleteServiceMock)
 	deleteMock.On("Execute", reference).Return(domain.User{}, errors.New("service error"))
+	searchMock := new(userSearchServiceMock)
 
-	handler := NewDefaultUser(mapperMock,
+	handler := NewDefaultUser(config,
+		mapperMock,
 		findAllMock,
 		findByReferenceMock,
 		createMock,
 		updateMock,
-		deleteMock)
+		deleteMock,
+		searchMock)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodDelete, "/api/v1/users/USER1", nil)
@@ -755,4 +813,223 @@ func TestUser_GivenADeleteRequest_WhenDelete_AndServiceReturnedAnError_ThenRetur
 
 	mapperMock.AssertExpectations(t)
 	deleteMock.AssertExpectations(t)
+}
+
+func TestUser_WhenSearch_ThenReturnSearchUserResponse(t *testing.T) {
+	t.Log("Successfully search users")
+
+	total := int64(1)
+	page := 1
+	size := 10
+	current := time.Now().UTC()
+	currentStr := current.Format(time.RFC3339)
+	domainSearchOutput := domain.UserSearchOutput{
+		SearchOutput: domain.SearchOutput{
+			Total:    total,
+			Page:     page,
+			PageSize: size,
+		},
+		Users: []domain.User{
+			{
+				GenericEntity: domain.GenericEntity{
+					Reference:   "USER1",
+					IsActive:    true,
+					CreatedDate: current,
+					UpdatedDate: current,
+				},
+				FirstName: "Foo",
+				LastName:  "Bar",
+				Email:     "foobar@email.com",
+			},
+		},
+	}
+	searchResponse := UserSearchResponse{
+		Data: []UserResponse{
+			{
+				Id:          "USER1",
+				FirstName:   "Foo",
+				LastName:    "Bar",
+				Email:       "foobar@email.com",
+				IsActive:    true,
+				CreatedDate: currentStr,
+				UpdatedDate: currentStr,
+			},
+		},
+		Total:    total,
+		Page:     page,
+		PageSize: size,
+	}
+
+	config := newApplicationConfigurationMock()
+	mapperMock := new(userMapperMock)
+	mapperMock.On("MapDomainSearchOutputToResponse", domainSearchOutput).Return(searchResponse)
+	findAllMock := new(userFindAllServiceMock)
+	findByReferenceMock := new(userFindByReferenceServiceMock)
+	createMock := new(userCreateServiceMock)
+	updateMock := new(userUpdateServiceMock)
+	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
+	searchMock.On("Execute", mock.AnythingOfType("UserSearchInput")).Return(domainSearchOutput, nil)
+
+	handler := NewDefaultUser(config,
+		mapperMock,
+		findAllMock,
+		findByReferenceMock,
+		createMock,
+		updateMock,
+		deleteMock,
+		searchMock)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/users/search", nil)
+	q := req.URL.Query()
+	q.Add("page", fmt.Sprint(page))
+	q.Add("size", fmt.Sprint(size))
+	req.URL.RawQuery = q.Encode()
+
+	r := testRouter()
+	r.GET("/api/v1/users/search", handler.Search)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var result UserSearchResponse
+	json.NewDecoder(w.Body).Decode(&result)
+
+	assert.NotNil(t, result)
+	assert.Equal(t, searchResponse, result)
+
+	mapperMock.AssertExpectations(t)
+	searchMock.AssertExpectations(t)
+}
+
+func TestUser_WhenSearch_AndPageAndSizeAreNotSet_ThenReturnSearchUserResponseUsingDefaultValues(t *testing.T) {
+	t.Log("Successfully search users")
+
+	config := newApplicationConfigurationMock()
+	total := int64(1)
+	current := time.Now().UTC()
+	currentStr := current.Format(time.RFC3339)
+	domainSearchOutput := domain.UserSearchOutput{
+		SearchOutput: domain.SearchOutput{
+			Total:    total,
+			Page:     config.PagingDefaultPage,
+			PageSize: config.PagingDefaultSize,
+		},
+		Users: []domain.User{
+			{
+				GenericEntity: domain.GenericEntity{
+					Reference:   "USER1",
+					IsActive:    true,
+					CreatedDate: current,
+					UpdatedDate: current,
+				},
+				FirstName: "Foo",
+				LastName:  "Bar",
+				Email:     "foobar@email.com",
+			},
+		},
+	}
+	searchResponse := UserSearchResponse{
+		Data: []UserResponse{
+			{
+				Id:          "USER1",
+				FirstName:   "Foo",
+				LastName:    "Bar",
+				Email:       "foobar@email.com",
+				IsActive:    true,
+				CreatedDate: currentStr,
+				UpdatedDate: currentStr,
+			},
+		},
+		Total:    total,
+		Page:     config.PagingDefaultPage,
+		PageSize: config.PagingDefaultSize,
+	}
+
+	mapperMock := new(userMapperMock)
+	mapperMock.On("MapDomainSearchOutputToResponse", domainSearchOutput).Return(searchResponse)
+	findAllMock := new(userFindAllServiceMock)
+	findByReferenceMock := new(userFindByReferenceServiceMock)
+	createMock := new(userCreateServiceMock)
+	updateMock := new(userUpdateServiceMock)
+	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
+	searchMock.On("Execute", mock.AnythingOfType("UserSearchInput")).Return(domainSearchOutput, nil)
+
+	handler := NewDefaultUser(config,
+		mapperMock,
+		findAllMock,
+		findByReferenceMock,
+		createMock,
+		updateMock,
+		deleteMock,
+		searchMock)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/users/search", nil)
+
+	r := testRouter()
+	r.GET("/api/v1/users/search", handler.Search)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var result UserSearchResponse
+	json.NewDecoder(w.Body).Decode(&result)
+
+	assert.NotNil(t, result)
+	assert.Equal(t, searchResponse, result)
+
+	mapperMock.AssertExpectations(t)
+	searchMock.AssertExpectations(t)
+}
+
+func TestUser_WhenSearch_AndServiceFails_ThenReturnInternalServiceError(t *testing.T) {
+	t.Log("Failure when search users because service returned an error")
+
+	page := 1
+	size := 10
+
+	config := newApplicationConfigurationMock()
+	mapperMock := new(userMapperMock)
+	findAllMock := new(userFindAllServiceMock)
+	findByReferenceMock := new(userFindByReferenceServiceMock)
+	createMock := new(userCreateServiceMock)
+	updateMock := new(userUpdateServiceMock)
+	deleteMock := new(userDeleteServiceMock)
+	searchMock := new(userSearchServiceMock)
+	searchMock.On("Execute", mock.AnythingOfType("UserSearchInput")).Return(domain.UserSearchOutput{}, errors.New("service error"))
+
+	handler := NewDefaultUser(config,
+		mapperMock,
+		findAllMock,
+		findByReferenceMock,
+		createMock,
+		updateMock,
+		deleteMock,
+		searchMock)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/users/search", nil)
+	q := req.URL.Query()
+	q.Add("page", fmt.Sprint(page))
+	q.Add("size", fmt.Sprint(size))
+	req.URL.RawQuery = q.Encode()
+
+	r := testRouter()
+	r.GET("/api/v1/users/search", handler.Search)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+	var err libErrors.APIError
+	json.NewDecoder(w.Body).Decode(&err)
+
+	assert.NotNil(t, err)
+	assert.Equal(t, http.StatusInternalServerError, err.Status)
+	assert.Equal(t, "service error", err.Message)
+
+	mapperMock.AssertExpectations(t)
+	searchMock.AssertExpectations(t)
 }
