@@ -96,6 +96,76 @@
                 }
             }
         },
+        "/search": {
+            "get": {
+                "description": "Search users",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Search users",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User first name",
+                        "name": "firstName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User last name",
+                        "name": "lastName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User email",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.UserSearchResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/{id}": {
             "get": {
                 "description": "Find an user by its id",
@@ -300,6 +370,26 @@
                 },
                 "updated": {
                     "type": "string"
+                }
+            }
+        },
+        "handler.UserSearchResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.UserResponse"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

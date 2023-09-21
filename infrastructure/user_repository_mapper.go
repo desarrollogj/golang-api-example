@@ -7,6 +7,7 @@ type UserMongoRepositoryMapper interface {
 	MapDomainToRepository(user domain.User) MongoUser
 	MapRepositoryToDomain(user MongoUser) domain.User
 	MapRepositoryListToDomainList(users []MongoUser) []domain.User
+	MapRepositorySearchActiveToOutput(users []MongoUser, total int64, page int, size int) domain.UserSearchOutput
 }
 
 // defaultMongoRepositoryMapper is the default implementation of UserMongoRepositoryMapper
@@ -52,4 +53,15 @@ func (m defaultMongoRepositoryMapper) MapRepositoryListToDomainList(users []Mong
 	}
 
 	return mappedUsers
+}
+
+func (m defaultMongoRepositoryMapper) MapRepositorySearchActiveToOutput(users []MongoUser, total int64, page int, size int) domain.UserSearchOutput {
+	return domain.UserSearchOutput{
+		SearchOutput: domain.SearchOutput{
+			Total:    total,
+			Page:     page,
+			PageSize: size,
+		},
+		Users: m.MapRepositoryListToDomainList(users),
+	}
 }

@@ -8,3 +8,14 @@ type GenericEntity struct {
 	CreatedDate time.Time
 	UpdatedDate time.Time
 }
+
+type SearchInput struct {
+	Page     int
+	PageSize int
+}
+
+type SearchOutput struct {
+	Total    int64
+	Page     int
+	PageSize int
+}

@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/desarrollogj/golang-api-example/domain"
 	appErrors "github.com/desarrollogj/golang-api-example/libs/errors"
 	appGin "github.com/desarrollogj/golang-api-example/libs/gin"
 	"github.com/desarrollogj/golang-api-example/user"
@@ -15,6 +16,7 @@ import (
 type User interface {
 	FindAll(c *gin.Context)
 	FindByReference(c *gin.Context)
+	Search(c *gin.Context)
 	Create(c *gin.Context)
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
@@ -22,29 +24,35 @@ type User interface {
 
 // defaultUser is the default implementation for User interface
 type defaultUser struct {
+	config          domain.ApplicationConfiguration
 	mapper          UserMapper
 	findAll         user.FindAll
 	findByReference user.FindByReference
 	create          user.Create
 	update          user.Update
 	delete          user.Delete
+	search          user.Search
 }
 
 // NewDefaultUser creates a defaultUser handler
-func NewDefaultUser(mapper UserMapper,
+func NewDefaultUser(config domain.ApplicationConfiguration,
+	mapper UserMapper,
 	findAll user.FindAll,
 	findByReference user.FindByReference,
 	create user.Create,
 	update user.Update,
-	delete user.Delete) defaultUser {
+	delete user.Delete,
+	search user.Search) defaultUser {
 	validate = validator.New()
 	return defaultUser{
+		config:          config,
 		mapper:          mapper,
 		findAll:         findAll,
 		findByReference: findByReference,
 		create:          create,
 		update:          update,
-		delete:          delete}
+		delete:          delete,
+		search:          search}
 }
 
 // FindAll find all users
@@ -98,6 +106,56 @@ func (h defaultUser) executeFindByReference(c *gin.Context) *appErrors.APIError 
 	}
 
 	c.JSON(http.StatusOK, h.mapper.MapDomainToResponse(user))
+	return nil
+}
+
+// Search search users
+// @Tags user
+// @Summary Search users
+// @Description Search users
+// @Param firstName query string false "User first name"
+// @Param lastName query string false "User last name"
+// @Param email query string false "User email"
+// @Param page query int false "Page number"
+// @Param size query int false "Page size"
+// @Produce json
+// @Success 200 {object} handler.UserSearchResponse
+// @Failure 400	{object} appErrors.APIError
+// @Failure 404	{object} appErrors.APIError
+// @Failure 500	{object} appErrors.APIError
+// @Router /search [get]
+func (h defaultUser) Search(c *gin.Context) {
+	appGin.ErrorWrapper(h.executeSearch, c)
+}
+
+func (h defaultUser) executeSearch(c *gin.Context) *appErrors.APIError {
+	firstName := c.Query("firstName")
+	lastName := c.Query("lastName")
+	email := c.Query("email")
+	page := appGin.GetIntQuery("page", c)
+	size := appGin.GetIntQuery("size", c)
+	if page < 1 {
+		page = h.config.PagingDefaultPage
+	}
+	if size < 1 {
+		size = h.config.PagingDefaultSize
+	}
+
+	input := domain.UserSearchInput{
+		SearchInput: domain.SearchInput{
+			Page:     page,
+			PageSize: size,
+		},
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+	}
+	output, err := h.search.Execute(input)
+	if err != nil {
+		return appErrors.HandleBusinessError(err)
+	}
+
+	c.JSON(http.StatusOK, h.mapper.MapDomainSearchOutputToResponse(output))
 	return nil
 }
 

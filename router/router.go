@@ -42,6 +42,12 @@ func configureMappings(router *gin.Engine) {
 		logger.AppLog.Fatal().Err(err).Msg("unable to load repository configuration")
 	}
 
+	appConfig := domain.ApplicationConfiguration{}
+	err = config.BindStruct("application", &appConfig)
+	if err != nil {
+		logger.AppLog.Fatal().Err(err).Msg("unable to load application configuration")
+	}
+
 	// Infrastructure
 	userMongoRepositoryMapper := infrastructure.NewDefaultMongoRepositoryMapper()
 	userMongoRepository := infrastructure.NewMongoUserRepository(mongoRepoConfig, userMongoRepositoryMapper)
@@ -52,20 +58,24 @@ func configureMappings(router *gin.Engine) {
 	userCreateUC := user.NewDefaultCreate(userMongoRepository)
 	userUpdateUC := user.NewDefaultUpdate(userMongoRepository)
 	userDeleteUC := user.NewDefaultDelete(userMongoRepository)
+	userSearchUC := user.NewDefaulSearch(userMongoRepository)
 
 	// Handlers
 	userMapper := handler.NewDefaultUserMapper()
-	userHandler := handler.NewDefaultUser(userMapper,
+	userHandler := handler.NewDefaultUser(appConfig,
+		userMapper,
 		userFindAllUC,
 		userFindByReferenceUC,
 		userCreateUC,
 		userUpdateUC,
-		userDeleteUC)
+		userDeleteUC,
+		userSearchUC)
 
 	// Routes
 	router.GET("/health", handler.Health)
 
 	api := router.Group("/api/v1")
+	api.GET("/users/search", userHandler.Search)
 	api.GET("/users", userHandler.FindAll)
 	api.GET("/users/:id", userHandler.FindByReference)
 	api.POST("/users", userHandler.Create)

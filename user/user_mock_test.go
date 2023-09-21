@@ -76,3 +76,14 @@ func (m *repositoryMock) Delete(reference string) (domain.User, error) {
 
 	return user, args.Error(1)
 }
+
+func (m *repositoryMock) SearchActive(input domain.UserSearchInput) (domain.UserSearchOutput, error) {
+	args := m.Called(input)
+
+	user, ok := args.Get(0).(domain.UserSearchOutput)
+	if !ok {
+		return domain.UserSearchOutput{}, errors.New("mock error")
+	}
+
+	return user, args.Error(1)
+}

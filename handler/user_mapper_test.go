@@ -125,3 +125,55 @@ func TestUserMapper_GivenAnUpdateUserRequest_WhenMapRequestToDomain_ThenReturnUp
 	assert.NotNil(t, input)
 	assert.Equal(t, expectedInput, input)
 }
+
+func TestUserMapper_GivenASearchOutputDomain_WhenMapDomainToResponse_ThenReturnSearchOutputResponse(t *testing.T) {
+	t.Log("Successfully map domain user list to response user list")
+
+	total := int64(1)
+	page := 1
+	size := 10
+	current := time.Now().UTC()
+	currentStr := current.Format(time.RFC3339)
+	domainSearchOutput := domain.UserSearchOutput{
+		SearchOutput: domain.SearchOutput{
+			Total:    total,
+			Page:     page,
+			PageSize: size,
+		},
+		Users: []domain.User{
+			{
+				GenericEntity: domain.GenericEntity{
+					Reference:   "USER1",
+					IsActive:    true,
+					CreatedDate: current,
+					UpdatedDate: current,
+				},
+				FirstName: "Foo",
+				LastName:  "Bar",
+				Email:     "foobar@email.com",
+			},
+		},
+	}
+	searchResponse := UserSearchResponse{
+		Data: []UserResponse{
+			{
+				Id:          "USER1",
+				FirstName:   "Foo",
+				LastName:    "Bar",
+				Email:       "foobar@email.com",
+				IsActive:    true,
+				CreatedDate: currentStr,
+				UpdatedDate: currentStr,
+			},
+		},
+		Total:    total,
+		Page:     page,
+		PageSize: size,
+	}
+
+	mapper := NewDefaultUserMapper()
+	response := mapper.MapDomainSearchOutputToResponse(domainSearchOutput)
+
+	assert.NotNil(t, response)
+	assert.Equal(t, searchResponse, response)
+}
